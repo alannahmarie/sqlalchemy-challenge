@@ -94,21 +94,29 @@ def tobs():
 
     return jsonify(tobs)
 
-# @app.route("/api/v1.0/<start>")
-# def tobs():
+@app.route("/api/v1.0/<start>")
+def start_date(start):
 
-#     # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start date.
-#     # When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
+    # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start-end range.
+    # When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
 
-#     session = Session(engine)
+    session = Session(engine)
     
-#     results_start = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == 'USC00519281').all()
+    results_start = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(func.strftime("%Y-%m-%d", Measurement.date) >= start).all()
 
-#     session.close()
+    session.close()
 
-#     tobs = list(np.ravel(results_tobs))
+    start_temps = []
 
-#     return jsonify(tobs)
+    for result in results_start:
+        temps = {}
+        temps["Lowest Temperature"] = result[0]
+        temps["Average Temperature"] = result[1]
+        temps["Highest Temperature"] = result[2]
+        start_temps.append(temps)
+
+    return jsonify(start_temps)
 
 
     # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start-end range.
